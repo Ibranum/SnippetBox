@@ -34,7 +34,7 @@ func (m *SnippetModel) Insert(title, content string, expires int) (int, error) {
 
   rand.Seed(time.Now().UnixNano())
   randomNumber := 10000000 + rand.Intn(90000000)
-  
+
   snippet := Snippet{
     ID:      randomNumber,
     Title:    title,
@@ -56,15 +56,15 @@ func (m *SnippetModel) Insert(title, content string, expires int) (int, error) {
       id = snippetrange.ID
   }
 
-  
-  
+
+
   return id, nil
 }
 
 func (m *SnippetModel) Get(id int) (*Snippet, error) {
   //currentTime := time.Now()
-  
-  
+
+
   var results []Snippet
   err := m.DB.DB.From("snippets").Select("id, title, content, created, expires").Eq("id", strconv.Itoa(id)).Execute(&results)
   if err != nil {
@@ -80,26 +80,35 @@ func (m *SnippetModel) Get(id int) (*Snippet, error) {
    }
 
   //fmt.Println(results)
-  
+
   return &results[0], nil
 }
 
 func (m *SnippetModel) Latest() ([]*Snippet, error) {
   currentTime := time.Now().Format(time.RFC3339Nano)
-  
+
 
   var results []*Snippet
+
+  fmt.Println("reached latest 1")
+
   err := m.DB.DB.From("snippets").
   Select("id, title, content, created, expires").
-  //Order("id", false). cant get order to work, something weird with package
+  //Order("id", false). // cant get order to work, something weird with package
   Limit(10).
   Gt("expires", currentTime). // Assuming this is how you compare dates in your query
   Execute(&results)
+
+  fmt.Println("reached latest 2")
+
+  fmt.Println(results)
+
   if err != nil {
     log.Fatalf("Error executing query: %v", err)
   }
 
-  fmt.Println(results)
-  
+  //fmt.Println(results)
+
+
   return results, nil
 }

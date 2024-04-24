@@ -8,6 +8,7 @@ require (
 	github.com/go-playground/form/v4 v4.2.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/jpfuentes2/go-env v0.0.0-20150316001728-8e0a68de05f2 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/justinas/alice v1.2.0 // indirect
 	github.com/justinas/nosurf v1.1.1 // indirect

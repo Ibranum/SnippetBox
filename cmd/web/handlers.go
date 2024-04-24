@@ -16,11 +16,14 @@ import (
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println("reach home 1")
   snippets, err := app.snippets.Latest()
   if err != nil {
+  fmt.Println("reach home 2")
     app.serverError(w, err)
+
   }
+  fmt.Println("reached home 3")
 
   data := app.newTemplateData(r)
   data.Snippets = snippets
@@ -34,7 +37,7 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
   data := app.newTemplateData(r)
-  
+
   app.render(w, http.StatusOK, "about.tmpl.html", data)
 }
 
@@ -93,13 +96,13 @@ func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request
     app.clientError(w, http.StatusBadRequest)
     return
   }
-  
+
   //
   form.CheckField(validator.NotBlank(form.Title), "title", "This field cannot be blank")
   form.CheckField(validator.MaxChars(form.Title, 100), "title", "This field cannot be more than 100 characters long")
   form.CheckField(validator.NotBlank(form.Content), "content", "This field cannot be blank")
   form.CheckField(validator.PermittedValue(form.Expires, 1, 7, 365), "expires", "This field must equal 1, 7 or 365")
-  
+
   if !form.Valid() {
     data := app.newTemplateData(r)
     data.Form = form
@@ -211,7 +214,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
   if err != nil {
     if errors.Is(err, models.ErrInvalidCredentials) {
       form.AddNonFieldError("Email or password is incorrect")
-  
+
       data := app.newTemplateData(r)
       data.Form = form
       app.render(w, http.StatusUnprocessableEntity, "login.tmpl.html", data)

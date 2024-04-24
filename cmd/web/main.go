@@ -5,19 +5,24 @@ import (
   "net/http"
   "flag"
   "os"
+
   "html/template"
   "time"
   //"context"
   "strings"
   "encoding/json"
   //"encoding/hex"
+
+  "github.com/jpfuentes2/go-env"
+
+
   "crypto/tls"
-  
+
   "fmt"
   supa "github.com/nedpals/supabase-go"
   //"github.com/alexedwards/scs/postgresstore"
   "github.com/alexedwards/scs/v2"
-  
+
 
   "github.com/go-playground/form/v4"
   //"context"
@@ -47,9 +52,9 @@ func NewSupabaseSessionStore(client *supa.Client) *SupabaseSessionStore {
 
 func (s *SupabaseSessionStore) Delete(token string) error {
   fmt.Println("reached delete session")
-  
+
   sessionData := SessionData{}
-  
+
   err := s.client.DB.From("sessions").Delete().Eq("token", token).Execute(&sessionData)
   if err != nil && !strings.Contains(err.Error(), "session not found") {
       return err
@@ -70,21 +75,30 @@ type CommitResponse struct {
 
 func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
   fmt.Println("reached find session")
-  
+
   sessionData := SessionData{}
 
-  err := s.client.DB.From("sessions").Select("data").Eq("id", token).Execute(&sessionData)
+
+
+  err := s.client.DB.From("sessions").Select("token, data, expiry").Eq("token", token).Execute(&sessionData)
   if err != nil {
+  	fmt.Println("reached error from Find sessionStore")
     return nil, false, err
   }
 
-  fmt.Println(sessionData)
-  
-  if sessionData.Token == "" || sessionData.Expiry.Before(time.Now()) {
-      return nil, false, nil
-  }
+  fmt.Println("reached find session 2")
 
-  return sessionData.Data, true, nil
+  //fmt.Println(sessionData)
+  fmt.Println(sessionData)
+
+  //if sessionData.Token == "" || sessionData.Expiry.Before(time.Now()) {
+      //return nil, false, nil
+      //}
+
+  fmt.Println("reached find session 3")
+  var fakeval []byte
+  //return sessionData.Data, true, nil
+  return fakeval, true, nil
 }
 
 type BufferData struct {
@@ -96,7 +110,7 @@ func (s *SupabaseSessionStore) Commit(token string, b []byte, expiry time.Time) 
   fmt.Println("reached commit session")
 
   //hexString := hex.EncodeToString(b)
-  
+
   sessionData := SessionData{
     Token: token,
     Data: b,
@@ -110,8 +124,8 @@ func (s *SupabaseSessionStore) Commit(token string, b []byte, expiry time.Time) 
 
   //sessionData.Data = hexString
 
-  
-  
+
+
   err := s.client.DB.From("sessions").Upsert(sessionData).Execute(&commitResp.Msg)
   if err != nil {
     fmt.Println(err)
@@ -119,7 +133,7 @@ func (s *SupabaseSessionStore) Commit(token string, b []byte, expiry time.Time) 
   }
 
   //fmt.Println(commitResp)
-  
+
   return nil
 }
 
@@ -143,7 +157,7 @@ func (s *SupabaseSessionStore) All() (map[string][]byte, error) {
 
 
 func main() {
-  addr := flag.String("addr", ":4000", "HTTP network address")
+  addr := flag.String("addr", ":4000", "HTTP(S) network address")
   debug := flag.Bool("debug", false, "Enable debug mode")
   flag.Parse()
 
@@ -151,9 +165,8 @@ func main() {
   errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
   // Using Supabase Postgresql as DB
-  
-  //fmt.Println(serviceRoleKey)
-  //fmt.Println(apiURL)
+
+
   db, err := openDB()
   if err != nil {
     errorLog.Fatal(err)
@@ -172,6 +185,7 @@ func main() {
 
   formDecoder := form.NewDecoder()
 
+  fmt.Println("reached b4 sessManager")
   sessionManager := scs.New()
   sessionManager.Store = NewSupabaseSessionStore(db)
   sessionManager.Lifetime = 12 * time.Hour
@@ -179,7 +193,7 @@ func main() {
 
   tlsConfig := &tls.Config{
     CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
-  }
+    }
 
   app := &application{
     debug: *debug,
@@ -191,7 +205,7 @@ func main() {
     formDecoder: formDecoder,
     sessionManager: sessionManager,
   }
-  
+
   srv := &http.Server{
     Addr: *addr,
     ErrorLog: errorLog,
@@ -203,14 +217,20 @@ func main() {
   }
 
   infoLog.Printf("Starting server on %s", *addr)
+
   err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
   errorLog.Fatal(err)
 }
 
 func openDB() (*supa.Client, error) {
+	env.ReadEnv("./.env")
+
   serviceRoleKey := os.Getenv("service_role")
+  fmt.Println(serviceRoleKey)
+  //fmt.Println("reached openDB 1")
   apiURL := os.Getenv("api_url")
+  fmt.Println(apiURL)
   supabase := supa.CreateClient(apiURL, serviceRoleKey)
-  
+
   return supabase, nil
 }

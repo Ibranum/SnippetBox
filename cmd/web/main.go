@@ -94,11 +94,9 @@ func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
     return nil, false, err
   }
 
-  for _, item := range sessionData223 {
-          fmt.Println(item.Token)  // Output: your_token, another_token, ...
-      }
-
-
+  //for _, item := range sessionData223 {
+          //fmt.Println(item.Token)  // Output: your_token, another_token, ...
+          //}
 
   if len(sessionData223) <= 0 {
   	fmt.Println("nothing in session data")
@@ -106,9 +104,10 @@ func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
   }
 
   fmt.Println("reached find session 2")
-  fmt.Println(sessionData223)
-  sessionData22 := sessionData223[0]
+  //fmt.Println(sessionData223)
+  fmt.Println(sessionData223[0].Data)
 
+  sessionData22 := sessionData223[0]
   sessionData.Token = sessionData22.Token
   sessionData.Data = []byte(sessionData22.Data)
   sessionData.Expiry = sessionData22.Expiry
@@ -116,7 +115,7 @@ func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
   fmt.Println("reached find session 3")
 
   //fmt.Println(sessionData)
-  fmt.Println(sessionData)
+  //fmt.Println(sessionData)
 
   if sessionData.Token == "" || sessionData.Expiry.Before(time.Now()) {
       return nil, false, nil
@@ -125,7 +124,7 @@ func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
   fmt.Println("reached find session 4")
   //var fakeval []byte
   //return fakeval, true, nil
-  fmt.Println(sessionData.Data)
+  //fmt.Println(sessionData.Data)
 
   return sessionData.Data, true, nil
 }

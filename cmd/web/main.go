@@ -69,36 +69,65 @@ type SessionData struct {
   Expiry time.Time `json:"expiry"`
 }
 
+
+
 type CommitResponse struct {
   Msg json.RawMessage `json:"msg"`
 }
 
 func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
-  fmt.Println("reached find session")
+  fmt.Println("reached find session 1")
 
   sessionData := SessionData{}
 
+  type sessionData2 []struct {
+    Token string `json:"token"`
+    Data string `json:"data"`
+    Expiry time.Time `json:"expiry"`
+    }
 
+  sessionData223 := sessionData2{}
 
-  err := s.client.DB.From("sessions").Select("token, data, expiry").Eq("token", token).Execute(&sessionData)
+  err := s.client.DB.From("sessions").Select("token, data, expiry").Eq("token", token).Execute(&sessionData223)
   if err != nil {
   	fmt.Println("reached error from Find sessionStore")
     return nil, false, err
   }
 
+  for _, item := range sessionData223 {
+          fmt.Println(item.Token)  // Output: your_token, another_token, ...
+      }
+
+
+
+  if len(sessionData223) <= 0 {
+  	fmt.Println("nothing in session data")
+  	return nil, false, nil
+  }
+
   fmt.Println("reached find session 2")
+  fmt.Println(sessionData223)
+  sessionData22 := sessionData223[0]
+
+  sessionData.Token = sessionData22.Token
+  sessionData.Data = []byte(sessionData22.Data)
+  sessionData.Expiry = sessionData22.Expiry
+
+  fmt.Println("reached find session 3")
 
   //fmt.Println(sessionData)
   fmt.Println(sessionData)
 
-  //if sessionData.Token == "" || sessionData.Expiry.Before(time.Now()) {
-      //return nil, false, nil
-      //}
+  if sessionData.Token == "" || sessionData.Expiry.Before(time.Now()) {
+      return nil, false, nil
+      }
 
-  fmt.Println("reached find session 3")
-  var fakeval []byte
-  //return sessionData.Data, true, nil
-  return fakeval, true, nil
+  fmt.Println("reached find session 4")
+  //var fakeval []byte
+  //return fakeval, true, nil
+  fmt.Println(sessionData.Data)
+
+  return sessionData.Data, true, nil
 }
 
 type BufferData struct {

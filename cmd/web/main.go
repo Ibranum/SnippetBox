@@ -80,9 +80,9 @@ func (s *SupabaseSessionStore) Find(token string) ([]byte, bool, error) {
 
   sessionData := SessionData{}
 
-  type sessionData2 []struct {
+  type sessionData2 []struct { // pay attention to []struct. It's different but required to correctly unmarshal the JSON
     Token string `json:"token"`
-    Data string `json:"data"`
+    Data string `json:"data"` // Notice this is string. Might need to change it back to bytes, this may be causing the issue.
     Expiry time.Time `json:"expiry"`
     }
 
